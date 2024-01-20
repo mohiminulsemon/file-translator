@@ -1,0 +1,9 @@
+<form method="post" enctype="multipart/form-data" action="{% url 'translate_file' %}">
+    {% csrf_token %}
+    <select name="target_language">
+        <option value="en">English</option>
+        <option value="ja">Japanese</option>
+        </select>
+    <input type="file" name="original_file">
+    <button type="submit">Upload and Translate</button>
+</form>
