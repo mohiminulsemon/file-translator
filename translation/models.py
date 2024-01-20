@@ -4,7 +4,7 @@ from django.contrib.auth.models import User  # For user association
 
 class TranslatedFile(models.Model):
     original_file = models.FileField(upload_to='original_files/')
-    translated_file = models.FileField(upload_to='translated_files/', blank=True, null=True)
+    # translated_file = models.FileField(upload_to='translated_files/', blank=True, null=True)
     target_language = models.CharField(max_length=50)
 
 class UploadedFile(models.Model):

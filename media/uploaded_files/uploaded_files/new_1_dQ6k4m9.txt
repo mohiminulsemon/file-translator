@@ -1,8 +1,0 @@
-1. full stack web project: https://event-management-c5df5.web.app/
-   github link: https://github.com/mohiminulsemon/Event-Management-Project
-   
-1. full stack web project: https://summer-camp-d4e33.web.app/
-   github link: https://github.com/mohiminulsemon/camp-de-sunshine-client
- 
-2. hello this is new text ( python and django) : https://open-library-pi77.onrender.com/
-   github link: https://github.com/mohiminulsemon/open-library

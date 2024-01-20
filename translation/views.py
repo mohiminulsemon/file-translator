@@ -37,23 +37,17 @@ download_file = FileDownloadView.as_view()
 # translator/views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from .serializers import TranslatedFileSerializer
 from .models import TranslatedFile
-import googletrans
-import openpyxl
+from googletrans import Translator
 from pptx import Presentation
-from django.core.files.base import ContentFile
+from openpyxl import load_workbook
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
+from django.urls import reverse
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated  # Add permission check
-from .serializers import TranslatedFileSerializer
-from .models import TranslatedFile
-import googletrans
-import openpyxl
-from pptx import Presentation
-from django.core.files.base import ContentFile
 
 class TranslateFileView(APIView):
     queryset = TranslatedFile.objects.all()
@@ -65,7 +59,6 @@ class TranslateFileView(APIView):
             original_file = serializer.validated_data['original_file']
             target_language = serializer.validated_data['target_language']
 
-            # Determine file type and call appropriate translation function
             file_extension = original_file.name.split('.')[-1].lower()
             if file_extension == 'xlsx':
                 translated_file_path = translate_xlsx(original_file, target_language)
@@ -74,18 +67,21 @@ class TranslateFileView(APIView):
             else:
                 return Response({'error': 'Unsupported file type'}, status=400)
 
-            # Save translated file to model
             translated_file_instance = TranslatedFile.objects.create(
                 original_file=original_file,
-                translated_file=translated_file_path,
+                # translated_file=translated_file_path,
                 target_language=target_language,
-                user=request.user  # Associate translated file with the user
             )
-            return Response({'id': translated_file_instance.id})
+             # Provide a link to download the translated file
+            download_link = f'/download/{translated_file_instance.id}/'
+            return Response({'id': translated_file_instance.id, 'download_link': download_link})
         else:
             return Response(serializer.errors, status=400)
 
+# The rest of your code remains the same.
 
+
+from pptx.util import Pt
 from pptx import Presentation
 from googletrans import Translator
 
@@ -129,31 +125,42 @@ def translate_and_preserve_formatting(prs, target_language):
 
 import openpyxl
 from googletrans import Translator
+import os
+from django.conf import settings
+
 
 def translate_xlsx(file_obj, target_language):
-    workbook = openpyxl.load_workbook(file_obj)
+    try:
+        workbook = load_workbook(file_obj, read_only=True)
+    except Exception as e:
+        return str(e)
+
     translator = Translator()
 
     for sheet in workbook.worksheets:
         for row in sheet.iter_rows():
             for cell in row:
-                if cell.value is not None:
+                if cell.value is not None and isinstance(cell.value, str):
                     translated_text = translator.translate(cell.value, dest=target_language).text
                     cell.value = translated_text
 
-    translated_file_path = 'translated_file.xlsx'  # Replace with desired filename
+    translated_file_path = os.path.join(settings.MEDIA_ROOT, 'translated_files', f'{os.path.basename(file_obj.name).replace(".", "_")}_translated.xlsx')
     workbook.save(translated_file_path)
     return translated_file_path
-
 
 
 from pptx import Presentation
 from googletrans import Translator
 
 def translate_pptx(file_obj, target_language):
-    prs = Presentation(file_obj)
-    translate_and_preserve_formatting(prs, target_language)  # Call the function here
-    translated_file_path = 'translated_file.pptx'  # Replace with desired filename
+    try:
+        prs = Presentation(file_obj)
+    except Exception as e:
+        return str(e)
+
+    translate_and_preserve_formatting(prs, target_language)
+
+    translated_file_path = os.path.join(settings.MEDIA_ROOT, 'translated_files', f'{os.path.basename(file_obj.name).replace(".", "_")}_translated.xlsx')
     prs.save(translated_file_path)
     return translated_file_path
 
