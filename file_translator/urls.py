@@ -22,13 +22,15 @@ from rest_framework.routers import DefaultRouter
 from testPP.views import TranslatedFileViewSet
 
 router = DefaultRouter()
-router.register(r'translatedfiles', TranslatedFileViewSet, basename='translatedfile')
+# router.register(r'translatedfiles', TranslatedFileViewSet, basename='translatedfile')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('translation.urls')),
+    # path('api/', include('translation.urls')),
     # path('api/', include('testPP.urls')),
     # path('api/', include(router.urls)),
+    path('', include('PPtx_translator.urls')),
+
 ]
 
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

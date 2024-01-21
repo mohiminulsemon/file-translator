@@ -46,6 +46,13 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from django.urls import reverse
+import openpyxl
+from googletrans import Translator
+import os
+from django.conf import settings
+from pptx.util import Pt
+from django.http import Http404
+
 
 
 
@@ -78,12 +85,6 @@ class TranslateFileView(APIView):
         else:
             return Response(serializer.errors, status=400)
 
-# The rest of your code remains the same.
-
-
-from pptx.util import Pt
-from pptx import Presentation
-from googletrans import Translator
 
 def translate_and_preserve_formatting(prs, target_language):
     formatted_text_data = []
@@ -123,11 +124,6 @@ def translate_and_preserve_formatting(prs, target_language):
                 i += 1
 
 
-import openpyxl
-from googletrans import Translator
-import os
-from django.conf import settings
-
 
 def translate_xlsx(file_obj, target_language):
     try:
@@ -149,8 +145,6 @@ def translate_xlsx(file_obj, target_language):
     return translated_file_path
 
 
-from pptx import Presentation
-from googletrans import Translator
 
 def translate_pptx(file_obj, target_language):
     try:
@@ -165,27 +159,17 @@ def translate_pptx(file_obj, target_language):
     return translated_file_path
 
 
-from django.shortcuts import get_object_or_404
-from django.http import FileResponse, Http404
-from django.core.exceptions import PermissionDenied
 
 def download_translated_file(request, file_id):
-    try:
-        translated_file = get_object_or_404(TranslatedFile, id=file_id)
-        if not translated_file.translated_file:
-            raise Http404("Translated file not available for download.")
+    translated_file = get_object_or_404(TranslatedFile, id=file_id)
+    if not translated_file.translated_file:
+        raise Http404("Translated file not available for download.")
 
-        # Ensure user has permission to download the file (add your logic here)
-        if not request.user.has_perm('translation.download_translated_file'):  # Example permission check
-            raise PermissionDenied("You don't have permission to download this file.")
 
-        with open(translated_file.translated_file.path, 'rb') as f:
-            filename = translated_file.original_file.name  # Use original filename for better clarity
-            response = FileResponse(f, as_attachment=True)
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            return response
+    with open(translated_file.translated_file.path, 'rb') as f:
+        filename = translated_file.original_file.name  # Use original filename for better clarity
+        response = FileResponse(f, as_attachment=True)
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
-    except (FileNotFoundError, PermissionError) as e:
-        # Handle potential file system errors or permission issues
-        return Response({'error': str(e)}, status=500)
 

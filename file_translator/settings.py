@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'translation',
     'testPP',
+    'PPtx_translator',
 ]
 
 MIDDLEWARE = [
